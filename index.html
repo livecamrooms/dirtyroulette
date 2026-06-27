@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiveCam Index</title>
+<meta name="description" content="Live cam room index sorted by viewers, tagged by gender, country, and language. 18+ adults only.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="LiveCam Index — Live Rooms">
+<meta property="og:description" content="Browse live cam rooms sorted by viewers. Filter by gender, search by name.">
+<meta property="og:type" content="website">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --bg2:       #13161e;
+    --bg3:       #1a1e28;
+    --border:    #1f2535;
+    --blue:      #7851a9;
+    --blue-dim:  #543976;
+    --blue-glow: rgba(120,81,169,0.18);
+    --text:      #d4d8e8;
+    --text-muted:#6b7591;
+    --text-dim:  #9098b4;
+    --female:    #c46a8a;
+    --male:      #5b8fd4;
+    --trans:     #9b6dc9;
+    --couple:    #5fad8a;
+    --hd:        #7851a9;
+    --tag-bg:    #161a25;
+    --tag-hover: #1f2535;
+    --radius:    4px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13.5px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,20,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    gap: 16px;
+  }
+
+  .site-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .site-name span {
+    color: var(--blue);
+  }
+
+  .adult-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  /* ── Tag bar ── */
+  .tag-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+  }
+
+  .tag-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag-label {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    padding-top: 2px;
+    white-space: nowrap;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius);
+    background: var(--tag-bg);
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+    user-select: none;
+  }
+
+  .tag:hover, .tag.active {
+    background: var(--blue-glow);
+    border-color: var(--blue-dim);
+    color: #afc3ef;
+  }
+
+  .tag.active {
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+
+  /* ── Main ── */
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+  }
+
+  /* ── Intro ── */
+  .intro {
+    margin-bottom: 18px;
+  }
+
+  .intro h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 5px;
+  }
+
+  .intro p {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .intro p strong {
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    max-width: 340px;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  input[type="search"], select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="search"] {
+    width: 100%;
+    padding: 7px 10px 7px 32px;
+  }
+
+  input[type="search"]:focus, select:focus {
+    border-color: var(--blue-dim);
+  }
+
+  input[type="search"]::placeholder {
+    color: var(--text-muted);
+  }
+
+  select {
+    padding: 7px 28px 7px 10px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7591'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+  }
+
+  .result-count {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* ── Table ── */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    background: var(--bg2);
+    color: var(--text-muted);
+    font-size: 11.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  th.sortable {
+    cursor: pointer;
+  }
+
+  th.sortable:hover {
+    color: var(--text);
+  }
+
+  th .sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.4;
+    font-size: 10px;
+  }
+
+  th.sort-asc .sort-arrow::after { content: '▲'; opacity: 1; color: var(--blue); }
+  th.sort-desc .sort-arrow::after { content: '▼'; opacity: 1; color: var(--blue); }
+  th:not(.sort-asc):not(.sort-desc) .sort-arrow::after { content: '⇅'; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: var(--bg3);
+  }
+
+  tbody td {
+    padding: 8px 12px;
+    vertical-align: middle;
+  }
+
+  /* Cam cell */
+  .cam-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .thumb-wrap {
+    position: relative;
+    width: 64px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--bg3);
+  }
+
+  .thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .thumb-wrap .hd-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(59,111,212,0.85);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 2px;
+    letter-spacing: 0.3px;
+  }
+
+  .room-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13.5px;
+    transition: color 0.15s;
+  }
+
+  .room-link:hover {
+    color: var(--blue);
+  }
+
+  .room-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 3px;
+  }
+
+  .room-tag {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  /* Viewers */
+  .viewers {
+    color: var(--text);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Gender badge */
+  .gender-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .gender-f { background: rgba(196,106,138,0.15); color: var(--female); border: 1px solid rgba(196,106,138,0.25); }
+  .gender-m { background: rgba(91,143,212,0.15); color: var(--male); border: 1px solid rgba(91,143,212,0.25); }
+  .gender-t { background: rgba(155,109,201,0.15); color: var(--trans); border: 1px solid rgba(155,109,201,0.25); }
+  .gender-c { background: rgba(95,173,138,0.15); color: var(--couple); border: 1px solid rgba(95,173,138,0.25); }
+
+  /* Age / Country / Lang */
+  .col-age, .col-country, .col-lang {
+    color: var(--text-dim);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Online time */
+  .col-online {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  /* ── Status ── */
+  .status {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .status .spinner {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Load more ── */
+  .load-more-wrap {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .btn-load {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 22px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-load:hover {
+    border-color: var(--blue-dim);
+    color: var(--blue);
+  }
+
+  /* ── Featured embeds ── */
+  .featured {
+    margin-bottom: 22px;
+  }
+
+  .featured-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .featured-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e05252;
+    margin-right: 5px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .embed-card {
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16/9;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .embed-card:hover {
+    border-color: var(--blue-dim);
+  }
+
+  .embed-card iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    pointer-events: none;
+  }
+
+  .embed-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background: linear-gradient(transparent 55%, rgba(0,0,0,0.82) 100%);
+    text-decoration: none;
+  }
+
+  .embed-overlay:hover .embed-name {
+    color: var(--blue);
+  }
+
+  .embed-meta {
+    padding: 7px 9px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .embed-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s;
+  }
+
+  .embed-viewers {
+    font-size: 11px;
+    color: #aaa;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .embed-viewers strong {
+    color: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .featured-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 520px) {
+    .featured-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 18px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.8;
+  }
+
+  footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  footer a:hover { color: var(--blue); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .col-age, .col-country, .col-lang, .col-online { display: none; }
+    .thumb-wrap { width: 48px; height: 36px; }
+    main { padding: 12px 12px 40px; }
+  }
+
+  @media (max-width: 520px) {
+    .col-gender { display: none; }
+    header { padding: 0 12px; }
+    .tag-bar { padding: 6px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" class="site-name">Live<span>Cam</span>Index</a>
+    <span class="adult-badge">18+ ADULTS ONLY</span>
+  </div>
+</header>
+
+<div class="tag-bar">
+  <div class="tag-bar-inner">
+    <span class="tag-label">Browse:</span>
+    <div class="tags" id="tagList"></div>
+  </div>
+</div>
+
+<main>
+  <div class="featured" id="featured" style="display:none">
+    <div class="featured-label"><span class="live-dot"></span>Top Rooms Live</div>
+    <div class="featured-grid" id="featuredGrid"></div>
+  </div>
+
+  <div class="intro">
+    <h1>Live cam room index — sorted and tagged</h1>
+    <p id="introText">Live cam room index, sorted by viewers, tagged by gender, country, and language. Tap any column header to re-sort. Filter by name, tag, or gender.</p>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" id="searchInput" placeholder="Filter by name, tag, location, language…" autocomplete="off">
+    </div>
+    <select id="genderFilter">
+      <option value="">All genders</option>
+      <option value="f">Female</option>
+      <option value="m">Male</option>
+      <option value="t">Trans</option>
+      <option value="c">Couple</option>
+    </select>
+    <span class="result-count" id="resultCount"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="roomTable">
+      <thead>
+        <tr>
+          <th style="width:240px">Cam</th>
+          <th class="sortable sort-desc" data-col="viewers">Viewers <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="display_name">Broadcaster <span class="sort-arrow"></span></th>
+          <th class="col-gender">Gender</th>
+          <th class="col-age sortable" data-col="age">Age <span class="sort-arrow"></span></th>
+          <th class="col-country sortable" data-col="location">Country <span class="sort-arrow"></span></th>
+          <th class="col-lang sortable" data-col="spoken_languages">Language <span class="sort-arrow"></span></th>
+          <th class="col-online">Online</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="8"><div class="status"><div class="spinner"></div>Loading rooms…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
+    <button class="btn-load" id="loadMoreBtn">Show more rooms</button>
+  </div>
+</main>
+
+<footer>
+  <div><a href="#" onclick="return false">18+ only</a> &nbsp;·&nbsp; All models are 18 years of age or older</div>
+  <div style="margin-top:4px">© <span id="yr"></span> LiveCamIndex</div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const WM = 'T2CSW';
+  const API_URL = `https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=${WM}&client_ip=request_ip&limit=500&offset=0`;
+  const PAGE_SIZE = 50;
+
+  // Gender label/class map
+  const GENDER = {
+    f: { label: 'Female', cls: 'gender-f' },
+    m: { label: 'Male',   cls: 'gender-m' },
+    t: { label: 'Trans',  cls: 'gender-t' },
+    c: { label: 'Couple', cls: 'gender-c' },
+  };
+
+  // Popular tags to show in tag bar
+  const FEATURED_TAGS = [
+    'teen','new','bigass','anal','skinny','young','shy','asian','natural',
+    'smalltits','cute','feet','cum','blonde','fuckmachine','latina','deepthroat',
+    'milf','bigcock','hairy','petite','redhead','pvt','brunette','lush','mistress',
+    'dildo','blowjob','pantyhose','couple','trans','curvy','tease','mature',
+    'daddy','ebony','lesbian','twink','ass','ahegao','tattoo','goth','bigtits',
+    'fit','nonude','creampie','bigdick','pregnant','bbw','c2c','daddygirl',
+    'german','stockings','muscle','straight','latino'
+  ];
+
+  let allRooms = [];
+  let filtered = [];
+  let sortCol = 'num_users';
+  let sortDir = -1; // -1 = desc
+  let activeTag = '';
+  let shownCount = PAGE_SIZE;
+  let stats = {};
+
+  // ── Fetch ──────────────────────────────────────────────
+  async function fetchRooms() {
+    try {
+      const resp = await fetch(API_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      allRooms = Array.isArray(data.results) ? data.results : [];
+      stats = {
+        total: data.total_count || allRooms.length,
+        tags: new Set(),
+        countries: new Set(),
+        langs: new Set(),
+      };
+      allRooms.forEach(r => {
+        (r.tags || []).forEach(t => stats.tags.add(t));
+        if (r.location) stats.countries.add(r.location);
+        toArr(r.spoken_languages).forEach(l => stats.langs.add(l));
+      });
+      buildTagBar();
+      updateIntro();
+      buildFeatured();
+      applyFilters();
+    } catch (e) {
+      document.getElementById('tableBody').innerHTML =
+        `<tr><td colspan="8"><div class="status">Failed to load rooms. Try refreshing.<br><small style="color:var(--text-muted);margin-top:6px;display:block">${e.message}</small></div></td></tr>`;
+    }
+  }
+
+  // ── Featured live embeds ───────────────────────────────
+  function buildFeatured() {
+    const top = allRooms.slice().sort((a, b) => (b.num_users || 0) - (a.num_users || 0)).slice(0, 4);
+    if (!top.length) return;
+    const grid = document.getElementById('featuredGrid');
+    grid.innerHTML = top.map(r => {
+      const href = `https://chaturbate.com/in/?tour=APi5&campaign=T2CSW&track=default&room=${r.username}`;
+      const embedSrc = `https://chaturbate.com/embed/${r.username}/?bgcolor=black&tour=APi5&campaign=T2CSW&track=default&mobileRedirect=never`;
+      const viewers = fmtNum(r.num_users);
+      const name = escHtml(r.display_name || r.username);
+      return `
+        <div class="embed-card">
+          <iframe src="${embedSrc}" scrolling="no" allowfullscreen></iframe>
+          <a href="${href}" target="_blank" rel="noopener sponsored" class="embed-overlay">
+            <div class="embed-meta">
+              <span class="embed-name">${name}</span>
+              <span class="embed-viewers"><strong>${viewers}</strong> watching</span>
+            </div>
+          </a>
+        </div>`;
+    }).join('');
+    document.getElementById('featured').style.display = '';
+  }
+
+  // ── Tag bar ────────────────────────────────────────────
+  function buildTagBar() {
+    const el = document.getElementById('tagList');
+    // Only show featured tags that actually appear in results
+    const available = FEATURED_TAGS.filter(t => stats.tags.has(t));
+    const html = available.map(t =>
+      `<span class="tag" data-tag="${t}">#${t}</span>`
+    ).join('') + `<span class="tag" data-tag="__all__">all tags →</span>`;
+    el.innerHTML = html;
+    el.querySelectorAll('.tag[data-tag]').forEach(el2 => {
+      el2.addEventListener('click', () => {
+        const tag = el2.dataset.tag;
+        if (tag === '__all__') {
+          // Toggle show all
+          el2.classList.toggle('active');
+          return;
+        }
+        activeTag = activeTag === tag ? '' : tag;
+        el.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+        if (activeTag) el2.classList.add('active');
+        shownCount = PAGE_SIZE;
+        applyFilters();
+      });
+    });
+  }
+
+  // ── Intro stats ────────────────────────────────────────
+  function updateIntro() {
+    const el = document.getElementById('introText');
+    el.innerHTML = `Live cam room index, sorted by viewers, tagged by gender, country and language. Tap any column header to re-sort. Filter by name, tag, or gender. Currently indexing <strong>${allRooms.length.toLocaleString()} live rooms</strong> across <strong>${stats.tags.size} tags</strong>, <strong>${stats.countries.size} countries</strong>, and <strong>${stats.langs.size} languages</strong>.`;
+  }
+
+  // ── Filters + sort ─────────────────────────────────────
+  function applyFilters() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const g = document.getElementById('genderFilter').value;
+
+    filtered = allRooms.filter(r => {
+      if (g && r.gender !== g) return false;
+      if (activeTag && !(r.tags || []).includes(activeTag)) return false;
+      if (q) {
+        const haystack = [
+          r.username, r.display_name, r.subject,
+          r.location, ...toArr(r.spoken_languages),
+          ...(r.tags || [])
+        ].join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+
+    // Sort
+    filtered.sort((a, b) => {
+      let av = a[sortCol] ?? '';
+      let bv = b[sortCol] ?? '';
+      if (sortCol === 'num_users') {
+        av = Number(av) || 0;
+        bv = Number(bv) || 0;
+      } else if (sortCol === 'age') {
+        av = Number(av) || 999;
+        bv = Number(bv) || 999;
+      } else {
+        av = String(av).toLowerCase();
+        bv = String(bv).toLowerCase();
+      }
+      if (av < bv) return sortDir;
+      if (av > bv) return -sortDir;
+      return 0;
+    });
+
+    document.getElementById('resultCount').textContent =
+      `${filtered.length.toLocaleString()} of ${allRooms.length.toLocaleString()} rooms`;
+
+    shownCount = PAGE_SIZE;
+    renderRows();
+  }
+
+  // ── Render ─────────────────────────────────────────────
+  function renderRows() {
+    const tbody = document.getElementById('tableBody');
+    const visible = filtered.slice(0, shownCount);
+
+    if (visible.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="status">No rooms match your filter.</div></td></tr>`;
+      document.getElementById('loadMoreWrap').style.display = 'none';
+      return;
+    }
+
+    tbody.innerHTML = visible.map(r => roomRow(r)).join('');
+
+    // Load more button
+    const wrap = document.getElementById('loadMoreWrap');
+    if (filtered.length > shownCount) {
+      wrap.style.display = '';
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  function roomRow(r) {
+    const g = GENDER[r.gender] || { label: r.gender || '—', cls: '' };
+    const href = `https://chaturbate.com/in/?tour=APi5&campaign=T2CSW&track=default&room=${r.username}`;
+    const viewers = fmtNum(r.num_users);
+    const age = r.age ? r.age : '—';
+    const country = r.location ? r.location.toUpperCase() : '—';
+    const langs = toArr(r.spoken_languages).join(', ') || '—';
+    const onlineTime = r.seconds_online ? fmtTime(r.seconds_online) : '—';
+    const isHD = r.is_hd;
+
+    const thumbUrl = r.image_url_360x270 || r.image_url || '';
+    const displayName = escHtml(r.display_name || r.username || '');
+    const subject = escHtml(truncate(r.subject || '', 60));
+    const topTags = (r.tags || []).slice(0, 4);
+
+    return `<tr>
+      <td>
+        <div class="cam-cell">
+          <a href="${href}" target="_blank" rel="noopener sponsored" class="thumb-wrap">
+            ${thumbUrl ? `<img src="${thumbUrl}" alt="${displayName}" loading="lazy">` : ''}
+            ${isHD ? '<span class="hd-badge">HD</span>' : ''}
+          </a>
+          <div>
+            <a href="${href}" target="_blank" rel="noopener sponsored" class="room-link">${displayName}</a>
+            ${subject ? `<div style="color:var(--text-muted);font-size:11.5px;margin-top:1px;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${subject}</div>` : ''}
+            ${topTags.length ? `<div class="room-tags">${topTags.map(t => `<span class="room-tag">#${escHtml(t)}</span>`).join('')}</div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td class="viewers">${viewers}</td>
+      <td><a href="${href}" target="_blank" rel="noopener sponsored" class="room-link">${displayName}</a></td>
+      <td class="col-gender"><span class="gender-badge ${g.cls}">${g.label}</span></td>
+      <td class="col-age">${age}</td>
+      <td class="col-country">${country}</td>
+      <td class="col-lang">${escHtml(langs)}</td>
+      <td class="col-online">${onlineTime}</td>
+    </tr>`;
+  }
+
+  // ── Helpers ────────────────────────────────────────────
+  function toArr(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    return String(v).split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  function fmtNum(n) {
+    n = Number(n) || 0;
+    if (n >= 1000) return (n / 1000).toFixed(0) + 'k';
+    return String(n);
+  }
+
+  function fmtTime(s) {
+    s = Number(s) || 0;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  }
+
+  function truncate(str, len) {
+    return str.length > len ? str.slice(0, len) + '…' : str;
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Events ─────────────────────────────────────────────
+  document.getElementById('searchInput').addEventListener('input', () => {
+    shownCount = PAGE_SIZE;
+    applyFilters();
+  });
+
+  document.getElementById('genderFilter').addEventListener('change', () => {
+    shownCount = PAGE_SIZE;
+    applyFilters();
+  });
+
+  document.getElementById('loadMoreBtn').addEventListener('click', () => {
+    shownCount += PAGE_SIZE;
+    renderRows();
+    document.getElementById('loadMoreBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Sortable columns
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      const apiCol = col === 'viewers' ? 'num_users' : col;
+      if (sortCol === apiCol) {
+        sortDir *= -1;
+      } else {
+        sortCol = apiCol;
+        sortDir = -1;
+      }
+      // Update header classes
+      document.querySelectorAll('th.sortable').forEach(t => {
+        t.classList.remove('sort-asc', 'sort-desc');
+      });
+      th.classList.add(sortDir === -1 ? 'sort-desc' : 'sort-asc');
+      applyFilters();
+    });
+  });
+
+  // Footer year
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  // ── Boot ───────────────────────────────────────────────
+  fetchRooms();
+})();
+</script>
+</body>
+</html>
